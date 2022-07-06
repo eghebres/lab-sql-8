@@ -1,0 +1,95 @@
+use sakila;
+# Write a query to display for each store its store ID, city, and country.
+
+SELECT store_id, city, country
+FROM store as st
+INNER JOIN address as ad
+ON st.address_id = ad.address_id
+JOIN city as ci
+ON ad.city_id = ci.city_id
+JOIN country as co
+ON ci.country_id = co.country_id;
+
+# Write a query to display how much business, in dollars, each store brought in.
+
+SELECT sta.store_id, sum(amount)
+FROM payment AS pay
+INNER JOIN staff as sta
+ON pay.staff_id = sta.staff_id
+INNER JOIN store as sto
+ON sto.address_id = sto.address_id
+GROUP BY sta.store_id;
+
+
+# Which film categories are longest?
+
+SELECT name, length
+FROM film as fi
+LEFT JOIN film_category as fica
+ON fi.film_id = fica.film_id
+LEFT JOIN category as cat
+ON fica.category_id = cat.category_id
+GROUP BY name
+ORDER BY length DESC;
+
+# Display the most frequently rented movies in descending order.
+
+SELECT title, count(*)
+FROM film as film
+JOIN inventory as inv
+ON film.film_id = inv.film_id
+JOIN rental as rent
+ON inv.inventory_id = rent.inventory_id
+GROUP BY title
+ORDER BY count(*) DESC;
+
+# List the top five genres in gross revenue in descending order.
+
+SELECT *
+FROM category as cate
+JOIN film_category as ficat
+ON cate.category_id = ficat.category_id
+JOIN film as fil
+ON ficat.film_id = fil.film_id
+JOIN inventory as inven
+ON fil.film_id = inven.film_id
+JOIN rental as ren
+ON inven.inventory_id = ren.inventory_id
+JOIN payment as paym
+ON ren.staff_id = paym.staff_id;
+
+
+# Is "Academy Dinosaur" available for rent from Store 1?
+SELECT *
+FROM film f INNER JOIN inventory i ON i.film_id = f.film_id
+WHERE i.store_id = 1 AND f.title = "Academy Dinosaur";
+
+# Get all pairs of actors that worked together.
+
+SELECT     CONCAT(a.first_name,'_', a.last_name) AS actor,
+		   fa.film_id, f.title
+FROM 	   sakila.actor a
+Right JOIN sakila.film_actor fa USING(actor_id)
+JOIN       sakila.film f USING(film_id);
+
+# Get all pairs of customers that have rented the same film more than 3 times.
+
+SELECT     CONCAT(c.first_name,'_', c.last_name) AS customer,
+		   COUNT(DISTINCT r.rental_id) AS times_rented, f.title
+FROM 	   sakila.customer c
+JOIN       sakila.rental r USING(customer_id)
+JOIN       sakila.inventory i USING(inventory_id)
+JOIN       sakila.film f USING(film_id)
+WHERE      film_id = film_id 
+GROUP BY   c.customer_id
+ORDER BY   f.title;
+
+# For each film, list actor that has acted in more films.
+SELECT   f.title as film_name, 
+         a.first_name AS actor_name, 
+		 COUNT(fa.actor_id) as times_acted
+FROM     sakila.actor a
+JOIN     sakila.film_actor fa USING(actor_id)
+JOIN     sakila.film f USING(film_id)
+GROUP BY film_name
+ORDER BY times_acted DESC;
